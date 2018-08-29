@@ -6,11 +6,11 @@ from libcpp.utility cimport pair
 ctypedef unsigned int uint32_t
 
 cdef extern from "cpp/main.h":
-    ctypedef pair[double, double] cmp
+    ctypedef pair[double, double] cmp_pair
     ctypedef uint32_t iter_t
-    void fill_image(size_t x_res, size_t y_res, cmp ll_corner, cmp ur_corner, iter_t max_iter, iter_t* data)
+    void fill_image(size_t x_res, size_t y_res, cmp_pair ll_corner, cmp_pair ur_corner, iter_t max_iter, iter_t* data)
 
-def create_image(size_t x_res, size_t y_res, cmp ll_corner, cmp ur_corner, iter_t max_iter):
+def create_image(size_t x_res, size_t y_res, cmp_pair ll_corner, cmp_pair ur_corner, iter_t max_iter):
     cdef np.ndarray[np.uint32_t, ndim=2, mode="c"] data = np.zeros((x_res,y_res), dtype=np.uint32)
     fill_image(x_res, y_res, ll_corner, ur_corner, max_iter, &data[0,0])
     return data
