@@ -3,6 +3,13 @@
 #include <type_traits>
 #include <gmpxx.h>
 
+template <class T1, class T2>
+using UpCastT = std::conditional_t<std::is_same_v<T1, mpf_class> || std::is_same_v<T2, mpf_class>,
+                                   mpf_class, std::common_type_t<T1, T2>>;
+
+template <class T1, class T2, class U1, class U2>
+using UpCastTQ = UpCastT<UpCastT<T1, U1>, UpCastT<T2, U2>>;
+
 template <class T1, class T2 = T1>
 class Complex {
 public:
@@ -29,7 +36,7 @@ public:
     Complex& operator=(const Complex&) = default;
     Complex& operator=(Complex&&) = default;
 
-    auto Abs2() const {
+    UpCastT<T1,T2> Abs2() const {
         return real_part * real_part + imag_part * imag_part;
     }
 
@@ -77,33 +84,33 @@ private:
 
 template <class T1, class T2, class U1, class U2>
 auto operator*(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
-    Complex<mpf_class> result{a.Real() * b.Real() - a.Imag() * b.Imag(),
+    Complex<UpCastTQ<T1, T2, U1, U2>> result{a.Real() * b.Real() - a.Imag() * b.Imag(),
                          a.Imag() * b.Real() + b.Imag() * a.Real()};
     return result;
 }
 
 template <class T1, class T2, class U1, class U2>
 auto operator+(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
-    Complex<mpf_class> result{a.Real() + b.Real(), a.Imag() + b.Imag()};
+    Complex<UpCastTQ<T1, T2, U1, U2>> result{a.Real() + b.Real(), a.Imag() + b.Imag()};
     return result;
 }
 
 template <class T1, class T2, class U1, class U2>
 auto operator-(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
-    Complex<mpf_class> result{a.Real() - b.Real(), a.Imag() - b.Imag()};
+    Complex<UpCastT<T1, U1>, UpCastT<T2,U2>> result{a.Real() - b.Real(), a.Imag() - b.Imag()};
     return result;
 }
 
 template <class T1, class T2, class U, class = std::enable_if_t<std::is_arithmetic_v<U>>>
 auto operator/(const Complex<T1, T2>& lhs, U rhs) {
-    Complex<mpf_class> result{lhs};
+    Complex result{lhs};
     result /= rhs;
     return result;
 }
 
 template <class T1, class T2, class U, class = std::enable_if_t<std::is_arithmetic_v<U>>>
 auto operator*(const Complex<T1, T2>& lhs, U rhs) {
-    Complex<mpf_class> result(lhs);
+    Complex result(lhs);
     result *= rhs;
     return result;
 }
