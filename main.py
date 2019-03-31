@@ -15,7 +15,8 @@ command_dic = {
         "in" : 5,
         "out" : 6,
         "increase_depth" : 7,
-        "decrease_depth" : 8
+        "decrease_depth" : 8,
+        "test_function"  : 100500
 }
 
 class ImageHolder:
@@ -72,6 +73,21 @@ class app(tk.Frame):
         res = tk.Button(subf, text='--d', command=lambda: self.move("decrease_depth"))
         res.pack(side='right')
 
+        res = tk.Button(subf, text='lowres', command=lambda: self.change_res("low"))
+        res.pack(side='right')
+        res = tk.Button(subf, text='highres', command=lambda: self.change_res("high"))
+        res.pack(side='right')
+
+        self.reset_im_frame()
+
+    def change_res(self, new):
+        if (new == "high"):
+            new_res = (512,512)
+        else:
+            new_res = (48, 48)
+            
+        self.imageholder.image_arr_uint16 = np.zeros(new_res, dtype=np.uint16)
+        self.imageholder.shift("none")
         self.reset_im_frame()
 
     def move(self, direction):

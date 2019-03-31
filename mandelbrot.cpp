@@ -66,7 +66,8 @@ static PyObject* rebuild_image(PyObject*, PyObject* args) {
 
     if (array_shape[0] != current_img_params.x_res ||
 	array_shape[1] != current_img_params.y_res) {
-	current_img_params = IMG::ImageParams<IMG::rsize_t>{array_shape[0], array_shape[1]};
+	current_img_params = IMG::ImageParams<IMG::rsize_t>{array_shape[0], array_shape[1],
+							    current_img_params.ll_corner, current_img_params.ur_corner};
     }
 
     try {
