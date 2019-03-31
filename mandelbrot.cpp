@@ -66,8 +66,9 @@ static PyObject* rebuild_image(PyObject*, PyObject* args) {
 
     if (array_shape[0] != current_img_params.x_res ||
 	array_shape[1] != current_img_params.y_res) {
-	current_img_params = IMG::ImageParams<IMG::rsize_t>{array_shape[0], array_shape[1],
-							    current_img_params.ll_corner, current_img_params.ur_corner};
+        current_img_params = IMG::ImageParams<IMG::rsize_t>{array_shape[0], array_shape[1],
+                                                            current_img_params.ll_corner,
+                                                            current_img_params.ur_corner};
     }
 
     try {
@@ -93,13 +94,13 @@ static void process_command(int command) {
     }
     
     IMG::ImageParams<IMG::rsize_t>& current_img_params = current_params.current_img_params;
-    auto translation = current_img_params.ur_corner - current_img_params.ll_corner;
+    IMG::ComplexT translation = current_img_params.ur_corner - current_img_params.ll_corner;
 
     if (command == 5 || command == 6) {
 	double scale = command == 5? 0.7 : 1.3;
 	
 	translation /= 2;
-	auto center = current_img_params.ll_corner + translation;
+	IMG::ComplexT center = current_img_params.ll_corner + translation;
 
 	current_img_params.ur_corner = center + translation*scale;
 	current_img_params.ll_corner = center - translation*scale;
@@ -118,21 +119,21 @@ static void process_command(int command) {
     }
     
     if (command == 1 || command == 4) {
-	translation.imag() = 0;
-	translation.real() /= 5;
+	translation.Imag() = 0;
+	translation.Real() /= 5;
 
 	if (command == 1) {
-	    translation.real() *= -1;
+	    translation.Real() *= -1;
 	}
 	current_img_params.ll_corner += translation;
 	current_img_params.ur_corner += translation;
 	return;
     } else if (command == 3 || command == 2) {
-	translation.imag() /= 5;
-	translation.real() = 0;
+	translation.Imag() /= 5;
+	translation.Real() = 0;
 
 	if (command == 2) {
-	    translation.imag() *= -1;
+	    translation.Imag() *= -1;
 	}
 	current_img_params.ll_corner += translation;
 	current_img_params.ur_corner += translation;

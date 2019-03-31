@@ -1,44 +1,109 @@
-#ifndef gmp_complex_h
-#define gmp_complex_h
+#pragma once
 
-#include <gmpxx.h>
 #include <type_traits>
+#include <gmpxx.h>
 
-class mpc_class{
+template <class T1, class T2 = T1>
+class Complex {
 public:
-    template <class T, class = std::enable_if<std::is_arithmetic<T>::value>>
-    mpc_class(T new_real) {
-	real_part = new_real;
+    Complex(T1 new_real) noexcept : real_part(new_real), imag_part(0) {
     }
-    mpc_class(mpf_class new_real);
-    mpc_class(mpf_class new_real, mpf_class new_imag);
-    const mpf_class& real() const;
-    const mpf_class& imag() const;
-    mpf_class abs2() const;
-    mpf_class& real();
-    mpf_class& imag();
-    mpc_class& operator+=(const mpc_class&);
 
-    template <class T, class = std::enable_if<std::is_arithmetic<T>::value>>
-    mpc_class& operator/=(T val) {
-	real_part /= val;
-	imag_part /= val;
+    Complex(T1 new_real, T2 new_imag) noexcept : real_part(new_real), imag_part(new_imag) {
+    }
+
+    template<class U1, class U2, class = std::enable_if_t<!std::is_same_v<U1, T1> || !std::is_same_v<U2, T2>>>
+    Complex(const Complex<U1, U2>& rhs) : real_part(rhs.Real()), imag_part(rhs.Imag()) {
+    }
+
+    Complex(const Complex& rhs) = default;
+    Complex(Complex&&) = default;
+
+    template <class U1, class U2, class = std::enable_if_t<!std::is_same_v<U1, T1> || !std::is_same_v<U2, T2>>>
+    Complex& operator=(const Complex<U1, U2>& rhs) {
+	real_part = rhs.Real();
+	imag_part = rhs.Imag();
 	return *this;
     }
 
-    template <class T, class = std::enable_if<std::is_arithmetic<T>::value>>
-    mpc_class& operator*=(T val) {
-	real_part *= val;
-	imag_part *= val;
+    Complex& operator=(const Complex&) = default;
+    Complex& operator=(Complex&&) = default;
+
+    auto Abs2() const {
+        return real_part * real_part + imag_part * imag_part;
+    }
+
+    T1& Real() {
+        return real_part;
+    }
+
+    T2& Imag() {
+        return imag_part;
+    }
+
+    const T1& Real() const {
+        return real_part;
+    }
+
+    const T2& Imag() const {
+        return imag_part;
+    }
+
+    template <class U1, class U2>
+    Complex& operator+=(const Complex<U1, U2>& rhs) {
+        real_part += rhs.real_part;
+        imag_part += rhs.imag_part;
 	return *this;
     }
+
+    template <class U, class = std::enable_if<std::is_arithmetic<U>::value>>
+    Complex& operator/=(U val) {
+        real_part /= val;
+        imag_part /= val;
+        return *this;
+    }
+
+    template <class U, class = std::enable_if<std::is_arithmetic<U>::value>>
+    Complex& operator*=(U val) {
+        real_part *= val;
+        imag_part *= val;
+        return *this;
+    }
+
 private:
-    mpf_class real_part, imag_part;
+    T1 real_part;
+    T2 imag_part;
 };
 
-mpc_class operator* (const mpc_class& a, const mpc_class& b);
-mpc_class operator+ (const mpc_class& a, const mpc_class& b);
-mpc_class operator- (const mpc_class& a, const mpc_class& b);
-mpc_class operator/ (mpc_class lhs, double rhs);
+template <class T1, class T2, class U1, class U2>
+auto operator*(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
+    Complex result{a.Real() * b.Real() - a.Imag() * b.Imag(),
+                         a.Imag() * b.Real() + b.Imag() * a.Real()};
+    return result;
+}
 
-#endif
+template <class T1, class T2, class U1, class U2>
+auto operator+(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
+    Complex result{a.Real() + b.Real(), a.Imag() + b.Imag()};
+    return result;
+}
+
+template <class T1, class T2, class U1, class U2>
+auto operator-(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
+    Complex result{a.Real() - b.Real(), a.Imag() - b.Imag()};
+    return result;
+}
+
+template <class T1, class T2, class U, class = std::enable_if_t<std::is_arithmetic_v<U>>>
+auto operator/(const Complex<T1, T2>& lhs, U rhs) {
+    Complex result{lhs};
+    result /= rhs;
+    return result;
+}
+
+template <class T1, class T2, class U, class = std::enable_if_t<std::is_arithmetic_v<U>>>
+auto operator*(const Complex<T1, T2>& lhs, U rhs) {
+    Complex result(lhs);
+    result *= rhs;
+    return result;
+}

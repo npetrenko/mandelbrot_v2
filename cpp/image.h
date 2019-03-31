@@ -1,13 +1,18 @@
+#pragma once 
+
 #include <complex>
 #include <exception>
 #include <tuple>
 #include <iostream>
 #include <cpp/gmp_complex.h>
+#include <gmpxx.h>
 
 namespace IMG {
 
 using iter_t = uint16_t;
 using rsize_t = uint16_t;
+
+using ComplexT = Complex<mpf_class, mpf_class>;
 
 template <class T>
 class Image;
@@ -15,13 +20,12 @@ class Image;
 template <class T>
 struct ImageParams {
     T x_res, y_res;
-    mpc_class ll_corner = {-1, -1};
-    mpc_class ur_corner = {1,   1};
+    ComplexT ll_corner {-1, -1};
+    ComplexT ur_corner {1,   1};
 };
 
-
-iter_t iter_function(mpc_class c, iter_t max_iter);
-mpc_class get_complex(const ImageParams<iter_t>& params, size_t x, size_t y);
+iter_t iter_function(const ComplexT& c, iter_t max_iter);
+ComplexT get_complex(const ImageParams<iter_t>& params, size_t x, size_t y);
 void build_image(Image<iter_t>* image, iter_t max_iter);
 
 template <class T>
@@ -30,30 +34,28 @@ public:
     Image(const ImageParams<rsize_t>& new_params);
     Image(const ImageParams<rsize_t>& new_params, T* new_data);
     Image(const Image<T>& old_image);
+    Image(Image&&) noexcept;
     ~Image();
 
-    T& at(rsize_t x, rsize_t y);
-    const T& at(rsize_t x, rsize_t y) const;
+    T& At(rsize_t x, rsize_t y);
+    const T& At(rsize_t x, rsize_t y) const;
 
-    const ImageParams<rsize_t>& get_params() const;
-    T* release();
-    T* expose();
+    const ImageParams<rsize_t>& GetParams() const;
+    T* Release();
+    T* Expose();
 private:
-    void check_ix(rsize_t x, rsize_t y) const;
+    void CheckIx(rsize_t x, rsize_t y) const;
     T* data_;
     ImageParams<rsize_t> params_;
     bool owns_data_ = true;
 };
 
 template <class T>
-Image<T>::Image(const ImageParams<rsize_t>& new_params, T* data) {
-    data_ = data;
-    params_ = new_params;
-    owns_data_ = false;
+Image<T>::Image(const ImageParams<rsize_t>& new_params, T* data) : data_(data), params_(new_params), owns_data_(false) {
 }
 
 template <class T>
-T* Image<T>::release() {
+T* Image<T>::Release() {
     T* data_ptr = data_;
     data_ = nullptr;
     params_ = ImageParams<rsize_t>{0,0};
@@ -61,7 +63,7 @@ T* Image<T>::release() {
 }
 
 template <class T>
-T* Image<T>::expose() {
+T* Image<T>::Expose() {
     return data_;
 }
 
@@ -81,6 +83,14 @@ Image<T>::Image(const Image<T>& old_image) {
 }
 
 template <class T>
+Image<T>::Image(Image<T>&& old_image) noexcept {
+    params_ = std::move(old_image.params_);
+    data_ = old_image.data_;
+    old_image.data_ = nullptr;
+    owns_data_ = old_image.owns_data_;
+}
+
+template <class T>
 Image<T>::~Image() {
     if (owns_data_) {
 	delete [] data_;
@@ -88,27 +98,29 @@ Image<T>::~Image() {
 }
 
 template <class T>
-T& Image<T>::at(rsize_t x, rsize_t y) {
-    check_ix(x, y);
+T& Image<T>::At(rsize_t x, rsize_t y) {
+    CheckIx(x, y);
     return data_[x*params_.y_res + y];
 }   
 
 template <class T>
-const T& Image<T>::at(rsize_t x, rsize_t y) const {
-    check_ix(x, y);
+const T& Image<T>::At(rsize_t x, rsize_t y) const {
+    CheckIx(x, y);
     return data_[x*params_.y_res + y];
 }
 
 template <class T>
-const ImageParams<rsize_t>& Image<T>::get_params() const {
+const ImageParams<rsize_t>& Image<T>::GetParams() const {
     return params_;
 }
 
 template <class T>
-void Image<T>::check_ix(rsize_t x, rsize_t y) const {
+void Image<T>::CheckIx(rsize_t x, rsize_t y) const {
+#ifndef NDEBUG
     if (x < params_.x_res && y < params_.y_res) {
         return;
     }
     throw std::range_error("image index out of range");
+#endif
 }
-} // IMG
+}  // namespace IMG
