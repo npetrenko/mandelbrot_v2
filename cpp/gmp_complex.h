@@ -77,33 +77,33 @@ private:
 
 template <class T1, class T2, class U1, class U2>
 auto operator*(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
-    Complex result{a.Real() * b.Real() - a.Imag() * b.Imag(),
+    Complex<mpf_class> result{a.Real() * b.Real() - a.Imag() * b.Imag(),
                          a.Imag() * b.Real() + b.Imag() * a.Real()};
     return result;
 }
 
 template <class T1, class T2, class U1, class U2>
 auto operator+(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
-    Complex result{a.Real() + b.Real(), a.Imag() + b.Imag()};
+    Complex<mpf_class> result{a.Real() + b.Real(), a.Imag() + b.Imag()};
     return result;
 }
 
 template <class T1, class T2, class U1, class U2>
 auto operator-(const Complex<T1, T2>& a, const Complex<U1, U2>& b) {
-    Complex result{a.Real() - b.Real(), a.Imag() - b.Imag()};
+    Complex<mpf_class> result{a.Real() - b.Real(), a.Imag() - b.Imag()};
     return result;
 }
 
 template <class T1, class T2, class U, class = std::enable_if_t<std::is_arithmetic_v<U>>>
 auto operator/(const Complex<T1, T2>& lhs, U rhs) {
-    Complex result{lhs};
+    Complex<mpf_class> result{lhs};
     result /= rhs;
     return result;
 }
 
 template <class T1, class T2, class U, class = std::enable_if_t<std::is_arithmetic_v<U>>>
 auto operator*(const Complex<T1, T2>& lhs, U rhs) {
-    Complex result(lhs);
+    Complex<mpf_class> result(lhs);
     result *= rhs;
     return result;
 }
