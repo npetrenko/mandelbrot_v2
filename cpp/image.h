@@ -24,9 +24,12 @@ struct ImageParams {
     ComplexT ur_corner {1,   1};
 };
 
+enum class ExecutionPolicy { kSingleThread, kMultiThread };
+
 iter_t iter_function(const ComplexT& c, iter_t max_iter);
 ComplexT get_complex(const ImageParams<iter_t>& params, size_t x, size_t y);
-void build_image(Image<iter_t>* image, iter_t max_iter);
+void build_image(Image<iter_t>* image, iter_t max_iter,
+                 ExecutionPolicy policy = ExecutionPolicy::kMultiThread);
 
 template <class T>
 class Image {
